@@ -76,7 +76,7 @@ Built with HTML, CSS & Vanilla JavaScript · Powered by VirusTotal API v3
 ```bash
 # Clone the repository
 # GitHub استنساخ المستودع من 
-git clone https://github.com/YOUR_USERNAME/threat-intel-scanner.git
+git clone https://github.com/naif-00/threat-intel-scanner.git
 cd threat-intel-scanner
 
 # Option 1: Use a simple live server (Node.js)
