@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Threat Analyzer</title>
+ 
+ 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Tajawal:wght@300;400;700;900&display=swap" rel="stylesheet">
+ 
+  <link rel="stylesheet" href="style.css">
+ 
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+ 
+<div class="container">
+ 
+  <header>
+    <div class="logo-area">
+      <div class="logo-icon">⬡</div>
+      <h1>THREAT INTEL</h1>
+    </div>
+    <div class="subtitle">MALWARE ANALYSIS · IOC SCANNER</div>
+    <div class="status-bar">
+      <span><span class="status-dot"></span> SYSTEM ONLINE</span>
+      <span>|</span>
+      <span>ENGINE: VIRUSTOTAL API v3</span>
+      <span>|</span>
+      <span id="current-time">--:--:-- UTC</span>
+    </div>
+  </header>
+ 
+ 
+  <div class="api-panel">
+    <div class="api-key-row">
+      <input type="password" class="api-key-input" id="apiKeyInput"
+             placeholder="أدخل VirusTotal API Key هنا... (مجاني من virustotal.com)"
+             dir="ltr">
+      <button class="scan-btn" onclick="saveApiKey()" style="padding: 0 16px; font-size: 11px;">
+        💾save/حفظ
+      </button>
+    </div>
+    <div class="api-status" id="apiStatus">
+      API Key مطلوب — احصل على مفتاح مجاني من:
+      <a href="https://www.virustotal.com/gui/sign-in" target="_blank" class="vt-link">virustotal.com/gui/sign-in</a>
+    </div>
+  </div>
+ 
+
+  <div class="search-panel">
+ 
+    <div class="type-selector">
+      <button class="type-btn active" onclick="setType('url')"    id="btn-url">🔗 URL</button>
+      <button class="type-btn"        onclick="setType('hash')"   id="btn-hash">🔑 HASH</button>
+      <button class="type-btn"        onclick="setType('ip')"     id="btn-ip">🌐 IP</button>
+      <button class="type-btn"        onclick="setType('domain')" id="btn-domain">📡 DOMAIN</button>
+    </div>
+ 
+    <div class="input-group">
+      <div class="input-type-badge" id="inputBadge">URL</div>
+      <input type="text" class="main-input" id="targetInput"
+             placeholder="https://example.com/suspicious-page"
+             dir="ltr"
+             onkeydown="if(event.key==='Enter') scan()">
+      <button class="scan-btn" id="scanBtn" onclick="scan()">
+        ▶ SCAN
+      </button>
+    </div>
+ 
+    <div class="examples-row">
+      <span class="examples-label">examples/أمثلة:</span>
+      <span class="example-chip" onclick="setExample('url',    'https://google.com')">google.com ✓</span>
+      <span class="example-chip" onclick="setExample('hash',   '44d88612fea8a8f36de82e1278abb02f')">MD5 Hash</span>
+      <span class="example-chip" onclick="setExample('ip',     '8.8.8.8')">8.8.8.8</span>
+      <span class="example-chip" onclick="setExample('domain', 'malware.wicar.org')">malware test</span>
+    </div>
+  </div>
+ 
+ 
+  <div class="error-panel" id="errorPanel"></div>
+ 
+  
+  <div class="loading-panel" id="loadingPanel">
+    <div class="scanner-animation">
+      <div class="scan-ring"></div>
+      <div class="scan-ring"></div>
+      <div class="scan-ring"></div>
+    </div>
+    <div class="loading-text">SCANNING TARGET...</div>
+    <div class="loading-steps" id="loadingSteps"></div>
+  </div>
+ 
+ 
+  <div class="results-panel" id="resultsPanel">
+ 
+    
+    <div class="verdict-banner" id="verdictBanner">
+      <div class="verdict-icon" id="verdictIcon">🛡️</div>
+      <div class="verdict-text">
+        <h2 id="verdictTitle">—</h2>
+        <p  id="verdictSub">—</p>
+      </div>
+      <div class="verdict-score">
+        <div class="score-num"   id="scoreNum">—</div>
+        <div class="score-label">THREAT SCORE</div>
+        <div class="threat-meter">
+          <div class="threat-fill" id="threatFill" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+ 
+    
+    <div class="stats-row">
+      <div class="stat-box red">
+        <div class="stat-value" id="statMalicious">0</div>
+        <div class="stat-label">MALICIOUS</div>
+      </div>
+      <div class="stat-box yellow">
+        <div class="stat-value" id="statSuspicious">0</div>
+        <div class="stat-label">SUSPICIOUS</div>
+      </div>
+      <div class="stat-box green">
+        <div class="stat-value" id="statClean">0</div>
+        <div class="stat-label">UNDETECTED</div>
+      </div>
+      <div class="stat-box blue">
+        <div class="stat-value" id="statTotal">0</div>
+        <div class="stat-label">TOTAL ENGINES</div>
+      </div>
+    </div>
+ 
+  
+    <div class="section-panel" id="detectionSection">
+      <div class="section-header">
+        <span>⚠</span> ANTIVIRUS DETECTIONS
+      </div>
+      <div class="section-content">
+        <div class="detection-grid" id="detectionGrid"></div>
+      </div>
+    </div>
+ 
+  
+    <div class="section-panel">
+      <div class="section-header">
+        <span>ℹ</span> TARGET METADATA
+      </div>
+      <div class="section-content">
+        <div class="meta-grid" id="metaGrid"></div>
+        <div style="margin-top: 12px;">
+          <a id="vtLink" href="#" target="_blank" class="vt-link">
+            
+          </a>
+        </div>
+      </div>
+    </div>
+ 
+  
+    <div class="section-panel">
+      <div class="section-content" style="text-align: center; padding: 20px;">
+        <button class="scan-btn" id="downloadReportBtn" onclick="downloadPDFReport()"
+                style="display: none; margin: 0 auto; background: var(--accent3);">
+          📄 تحميل التقرير PDF / Download Report
+        </button>
+      </div>
+    </div>
+ 
+  </div>
+ 
+  <footer>
+    THREAT INTEL TOOL · POWERED BY VIRUSTOTAL API v3<br>
+    للاستخدام الأمني والبحثي فقط
+  </footer>
+ 
+</div>
+ 
+ 
+<script src="app.js"></script>
+ 
+</body>
+</html>
