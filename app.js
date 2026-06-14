@@ -268,18 +268,29 @@ function renderResults(data, originalTarget, resourceId) {
     return (order[a[1].category] || 4) - (order[b[1].category] || 4);
   });
 
+sortedEngines.slice(0, 30).forEach(([engine, result]) => {
+  const cat = result.category;
+  const item = document.createElement('div');
+  item.className = 'detection-item';
+
+
   const indicator = document.createElement('div');
   indicator.className = `det-indicator ${cat}`;
+
   const engineDiv = document.createElement('div');
   engineDiv.className = 'det-engine';
   engineDiv.textContent = engine;
+
   const resultDiv = document.createElement('div');
   resultDiv.className = `det-result ${cat}`;
   resultDiv.textContent = result.result || cat;
+
+
   item.appendChild(indicator);
   item.appendChild(engineDiv);
   item.appendChild(resultDiv);
-    grid.appendChild(item);
+  
+  grid.appendChild(item);
 });
 
   if (sortedEngines.length === 0) {
@@ -329,7 +340,6 @@ metaGrid.innerHTML = metaItems.map(m => {
     </div>
   `;
 }).join('');
-  
   
   const typeMap = { url: 'url', hash: 'file', ip: 'ip-address', domain: 'domain' };
   document.getElementById('vtLink').href =
