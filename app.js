@@ -268,17 +268,19 @@ function renderResults(data, originalTarget, resourceId) {
     return (order[a[1].category] || 4) - (order[b[1].category] || 4);
   });
 
-  sortedEngines.slice(0, 30).forEach(([engine, result]) => {
-    const cat  = result.category;
-    const item = document.createElement('div');
-    item.className = 'detection-item';
-    item.innerHTML = `
-      <div class="det-indicator ${cat}"></div>
-      <div class="det-engine">${engine}</div>
-      <div class="det-result ${cat}">${result.result || cat}</div>
-    `;
+  const indicator = document.createElement('div');
+  indicator.className = `det-indicator ${cat}`;
+  const engineDiv = document.createElement('div');
+  engineDiv.className = 'det-engine';
+  engineDiv.textContent = engine;
+  const resultDiv = document.createElement('div');
+  resultDiv.className = `det-result ${cat}`;
+  resultDiv.textContent = result.result || cat;
+  item.appendChild(indicator);
+  item.appendChild(engineDiv);
+  item.appendChild(resultDiv);
     grid.appendChild(item);
-  });
+});
 
   if (sortedEngines.length === 0) {
     grid.innerHTML = '<div style="color:var(--dim);font-family:Share Tech Mono,monospace;font-size:12px;text-align:center;padding:20px;">لا توجد بيانات محركات فحص متاحة</div>';
@@ -312,13 +314,22 @@ function renderResults(data, originalTarget, resourceId) {
   if (attrs.url)   metaItems.push({ label: 'FINAL URL',   value: attrs.url.slice(0, 50) });
   if (attrs.title) metaItems.push({ label: 'PAGE TITLE',  value: attrs.title });
 
-  metaGrid.innerHTML = metaItems.map(m => `
+metaGrid.innerHTML = metaItems.map(m => {
+  const safeValue = String(m.value || '—')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+
+  return `
     <div class="meta-item">
       <div class="meta-label">${m.label}</div>
-      <div class="meta-value">${m.value || '—'}</div>
+      <div class="meta-value">${safeValue}</div>
     </div>
-  `).join('');
-
+  `;
+}).join('');
+  
   
   const typeMap = { url: 'url', hash: 'file', ip: 'ip-address', domain: 'domain' };
   document.getElementById('vtLink').href =
